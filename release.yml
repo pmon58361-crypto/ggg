@@ -1,0 +1,60 @@
+name: release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Obfuscate (unique build)
+        shell: pwsh
+        run: |
+          python build/obfuscate.py . __obfuscated
+          $saltLine = Get-Content __obfuscated/build_hash.txt | Where-Object { $_ -like 'salt=*' } | Select-Object -First 1
+          $salt = $saltLine.Substring(5)
+          echo "VALORENT_BUILD_SALT=$salt" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "VALORENT_BUILD_SALT=$salt"
+
+      - name: Build exe
+        shell: pwsh
+        run: |
+          pyinstaller --noconfirm --clean --onefile --windowed --name Valorent __obfuscated/main.py
+          $hash = (Get-FileHash dist/Valorent.exe -Algorithm SHA256).Hash.ToLower()
+          Write-Host "sha256=$hash"
+          Set-Content -Path build_hash.txt -Value $hash -NoNewline
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Valorent-${{ github.run_id }}
+          path: |
+            dist/Valorent.exe
+            build_hash.txt
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/Valorent.exe
+            build_hash.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

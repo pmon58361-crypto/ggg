@@ -1,0 +1,38 @@
+# Valorent Aimbot — tunable settings
+general:
+  fire_key: "right_click"      # hold to activate
+  calibrate_key: "f6"          # press over a head to learn colors
+  toggle_key: "f5"             # pause/resume
+
+detection:
+  skin_color_mode: "auto"      # "auto" (calibrate) | "manual"
+  skin_color_manual: "#C9976F" # used when mode == manual
+  skin_tolerance: 24           # higher = catches shadows / different skin
+  head_min_area: 12            # min pixels to count as a head
+  scan_region_pct_x: 0.40      # center band scanned (keeps aim on target)
+  scan_region_pct_y: 0.40
+
+behavior:
+  strafe_correction: true
+  smoothness: 0.65             # 0 = teleport, 1 = gentle glide (>=0.5 reads human)
+  max_speed_px: 450            # per-frame cap; lower = stealthier
+  y_priority: true             # favor kill-shot vertical band
+  use_pydirectinput: false     # true = fallback to pydirectinput; false = relative SendInput (default, stealthier)
+
+humanize:
+  enabled: true
+  jitter_px: 2.5               # gaussian sigma added to each step
+  micro_pause_chance: 0.08     # per-tick chance of a tiny stall
+  micro_pause_ms: [4, 16]
+  tick_jitter_pct: 0.25        # variable cadence so it's not a fixed metronome
+  deadzone_px: 1.0             # swallow sub-pixel twitch
+
+performance:
+  scan_fps: 60
+  capture_scale: 1.0
+
+calibration:
+  region_size: 40              # px box sampled around crosshair during calibrate
+
+identity:
+  auto_salt: true              # generate+persist a per-install salt if none set
